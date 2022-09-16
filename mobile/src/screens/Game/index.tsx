@@ -26,7 +26,7 @@ export function Game() {
    const [duos, setDuos] = useState<DuoCardProps[]>([])
 
    useEffect(() => {
-      fetch(`http://192.168.1.3:3333/games/${game.id}/ads`)
+      fetch(`http://10.0.0.113:3333/games/${game.id}/ads`)
          .then(response => response.json())
          .then(data => setDuos(data))
    }, []);
