@@ -1,4 +1,4 @@
-import { CaretDown, Check, GameController } from 'phosphor-react';
+import { CaretDown, CaretUp, Check, GameController } from 'phosphor-react';
 import { useEffect, useState, FormEvent } from 'react';
 import axios from 'axios';
 import * as Dialog from '@radix-ui/react-dialog';
@@ -17,33 +17,40 @@ export function Modal() {
    const [games, setGames] = useState<Game[]>([]);
    const [weekDays, setWeekDays] = useState<string[]>([]);
    const [check, setCheck] = useState(false);
-   const [selectGame, setSelectGame] = useState('');
+   const [selectGame, setSelectGame] = useState<string>();
+
+   useEffect(() => {
+      axios('http://localhost:3333/games')
+         .then(response => {
+            setGames(response.data)
+         })
+   }, []);
 
    async function handleCreateAd(event: FormEvent) {
+      console.log('enviou')
+      console.log(selectGame)
+
       event.preventDefault();
 
       const formData = new FormData(event.target as HTMLFormElement);
       const data = Object.fromEntries(formData);
 
-      if(data.name) {
-         return;
+      try {
+         await axios.post(`http://localhost:3333/games/${selectGame}/ads`, {
+            name: data.name,
+            discord: data.discord,
+            hourEnd: data.hourEnd,
+            hourStart: data.hourStart,
+            yearsPlayed: Number(data.yearsPlayed),
+            useVoiceChannel: check,
+            weekDays: weekDays.map(Number),
+         });
+         alert('Anúncio criado com sucesso!');
+      } catch(error) {
+         console.log(error);
+         alert('Não foi possível criar o anúncio.')
       }
 
-      try {
-         await axios.post(`http://localhost:3333/games/${setSelectGame}/ads`, {
-               name: data.name,
-               yearsPlayed: Number(data.yearsPlayed),
-               discord: data.discord,
-               weekDays: weekDays.map(Number),
-               hourStart: data.hourStart,
-               hourEnd: data.hourEnd,
-               useVoiceChannel: check,
-            })
-            alert('Anúncio criado com sucesso!')
-      } catch (error) {
-         alert('Não foi possível criar um anúncio.')
-         console.log(error)
-      };
    };
 
    return (
@@ -51,13 +58,13 @@ export function Modal() {
          <Dialog.Overlay className='bg-black/60 inset-0 fixed' />
          <Dialog.Content className='fixed bg-[#2A2634] py-8 px-10 text-white top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-lg w-[480px] shadow-black'>
             <Dialog.Title className='text-3xl font-bold'>Publique um anúncio</Dialog.Title>
-            <form onSubmit={handleCreateAd} className='mt-8 flex flex-col gap-4'>
+            <form
+               onSubmit={handleCreateAd}
+               className='mt-8 flex flex-col gap-4'
+            >
                <div className="flex flex-col gap-2">
                   <label className='font-semibold' htmlFor="game">Qual o game?</label>
-                  <Select.Root 
-                     onValueChange={setSelectGame}
-                     value={selectGame}
-                  >
+                  <Select.Root onValueChange={setSelectGame} value={selectGame}>
                      <Select.Trigger
                         className="bg-zinc-900 py-3 px-4 rounded text-small flex justify-between"
                         aria-label='Games'
@@ -65,7 +72,7 @@ export function Modal() {
                         <Select.Value
                            className='font-semibold placeholder:text-zinc-500'
                            placeholder="Selecione o game que deseja jogar"
-                           defaultValue=""
+                           defaultValue=''
                         />
                         <Select.Icon>
                            <CaretDown size={24} />
@@ -77,7 +84,10 @@ export function Modal() {
                               <Select.Group className=''>
                                  {games.map(game => {
                                     return (
-                                       <Select.Item key={game.id} className='text-white hover:bg-zinc-800 bg-zinc-900 py-3 px-4 rounded flex justify-between cursor-pointer' value={game.id}>
+                                       <Select.Item
+                                          key={game.id}
+                                          className='text-white hover:bg-zinc-800 bg-zinc-900 py-3 px-4 rounded flex justify-between cursor-pointer'
+                                          value={game.id}>
                                           <Select.ItemText>{game.title}</Select.ItemText>
                                           <Select.SelectItemIndicator>
                                              <Check size={24} />
@@ -126,8 +136,8 @@ export function Modal() {
                   <div className='flex flex-col gap-2 flex-1'>
                      <label htmlFor="hourStart">Qual horário do dia?</label>
                      <div className="grid grid-cols-2 flex-2 gap-2">
-                        <Input name='hourStart' id='hourStart' type="time" placeholder='De' />
-                        <Input name='hourEnd' id='hourEnd' type="time" placeholder='De' />
+                        <Input name='hourStart' id='hourStart' placeholder='De' />
+                        <Input name='hourEnd' id='hourEnd' placeholder='De' />
                      </div>
                   </div>
                </div>
@@ -136,13 +146,13 @@ export function Modal() {
                      className='w-6 h-6 p-1 bg-zinc-900 rounded'
                      checked={check}
                      onCheckedChange={(checked) => {
-                        if(checked === true) {
+                        if (checked === true) {
                            setCheck(true);
                         } else {
                            setCheck(false);
                         }
                      }}
-                     >
+                  >
                      <Checkbox.Indicator>
                         <Check size={16} className="text-emerald-400" />
                      </Checkbox.Indicator>

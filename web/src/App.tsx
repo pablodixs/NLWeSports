@@ -7,6 +7,8 @@ import logoImage from './assets/logo-nlw.svg';
 
 import './styles/main.css';
 import { Modal } from './components/Modal';
+import axios from 'axios';
+import { Input } from './components/Form/Input';
 
 interface Game {
    id: string,
@@ -21,11 +23,8 @@ export default function App() {
    const [games, setGames] = useState<Game[]>([]);
 
    useEffect(() => {
-      fetch('http://localhost:3333/games')
-         .then(response => response.json())
-         .then(data => {
-            setGames(data)
-         });
+      axios('http://localhost:3333/games')
+         .then(response => { setGames(response.data) })
    }, [])
 
    return (
