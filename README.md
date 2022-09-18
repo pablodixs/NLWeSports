@@ -13,5 +13,6 @@ Aplicação web e mobile Find your Duo, uma plataforma que ajuda gamers a encont
 - NodeJS
 - SQLite
 - Prisma
+- Express
 #
-### 🚧 Em progresso...
+### 🚀 Concluído
